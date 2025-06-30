@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bossman Field Ops</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .phone-container {
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 40px;
+            padding: 8px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            border-radius: 32px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .status-bar {
+            background: #1a1a1a;
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .app-header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .app-header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .screen {
+            display: none;
+            height: calc(100% - 120px);
+            overflow-y: auto;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .nav-tabs {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            height: 70px;
+        }
+
+        .nav-tab {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            background: none;
+            color: #999;
+        }
+
+        .nav-tab.active {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .nav-tab .icon {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+        }
+
+        .nav-tab span {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* Login Screen */
+        .login-form {
+            padding: 40px 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group label {
+            position: absolute;
+            top: -8px;
+            left: 12px;
+            background: white;
+            padding: 0 8px;
+            font-size: 12px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Home Screen */
+        .home-content {
+            padding: 20px;
+        }
+
+        .search-bar {
+            background: #f5f5f5;
+            border-radius: 25px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:hover {
+            background: #e0e0e0;
+        }
+
+        .search-bar input {
+            border: none;
+            background: none;
+            flex: 1;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .search-bar input::placeholder {
+            color: #999;
+        }
+
+        .floorplan {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 300px;
+            position: relative;
+        }
+
+        .floorplan h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .ps-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .ps-unit {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .ps-unit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        .ps-unit.available {
+            border-color: #28a745;
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+        }
+
+        .ps-unit.in-use {
+            border-color: #007bff;
+            background: linear-gradient(135deg, #cce5ff, #b3d9ff);
+        }
+
+        .ps-unit.warning {
+            border-color: #ffc107;
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+        }
+
+        .ps-unit.overtime {
+            border-color: #dc3545;
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+        }
+
+        .ps-unit.borrowed {
+            border-color: #6c757d;
+            background: linear-gradient(135deg, #e9ecef, #dee2e6);
+        }
+
+        .ps-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin: 0 auto 8px;
+        }
+
+        .ps-status.available { background: #28a745; }
+        .ps-status.in-use { background: #007bff; }
+        .ps-status.warning { background: #ffc107; }
+        .ps-status.overtime { background: #dc3545; }
+        .ps-status.borrowed { background: #6c757d; }
+
+        .ps-unit h4 {
+            font-size: 14px;
+            margin-bottom: 4px;
+            color: #333;
+        }
+
+        .ps-unit p {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .action-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        .action-card .icon {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 10px;
+            background: #667eea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        /* Rental Management Screen */
+        .rental-list {
+            padding: 20px;
+        }
+
+        .rental-item {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .rental-info h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .rental-info p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .rental-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        /* POS Screen */
+        .pos-content {
+            padding: 20px;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .menu-item {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .menu-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        .menu-item img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: #f0f0f0;
+        }
+
+        .menu-item h4 {
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .menu-item p {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .cart-summary {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            bottom: 20px;
+        }
+
+        .cart-summary h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .cart-total {
+            font-size: 18px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            width: 90%;
+            max-width: 300px;
+            text-align: center;
+        }
+
+        .modal h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <div class="phone-screen">
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <span>9:41</span>
+                <span>🔋 87%</span>
+            </div>
+
+            <!-- App Header -->
+            <div class="app-header">
+                <h1>Bossman Field Ops</h1>
+                <p>Cabang Menteng | Shift Pagi</p>
+            </div>
+
+            <!-- Login Screen -->
+            <div class="screen active" id="login-screen">
+                <div class="login-form">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" placeholder="Masukkan email Anda">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" placeholder="Masukkan password">
+                    </div>
+                    <button class="login-btn" onclick="showScreen('home-screen')">Login</button>
+                </div>
+            </div>
+
+            <!-- Home Screen -->
+            <div class="screen" id="home-screen">
+                <div class="home-content">
+                    <div class="search-bar" onclick="showGameSearch()">
+                        <span>🔍</span>
+                        <input type="text" placeholder="Cari game...">
+                    </div>
+
+                    <div class="floorplan">
+                        <h3>Denah Rental PlayStation</h3>
+                        <div class="ps-grid">
+                            <div class="ps-unit available" onclick="showPSDetails('PS-001', 'Tersedia')">
+                                <div class="ps-status available"></div>
+                                <h4>PS-001</h4>
+                                <p>Tersedia</p>
+                            </div>
+                            <div class="ps-unit in-use" onclick="showPSDetails('PS-002', 'Dimainkan')">
+                                <div class="ps-status in-use"></div>
+                                <h4>PS-002</h4>
+                                <p>45 menit</p>
+                            </div>
+                            <div class="ps-unit warning" onclick="showPSDetails('PS-003', 'Hampir Habis')">
+                                <div class="ps-status warning"></div>
+                                <h4>PS-003</h4>
+                                <p>5 menit</p>
+                            </div>
+                            <div class="ps-unit available" onclick="showPSDetails('PS-004', 'Tersedia')">
+                                <div class="ps-status available"></div>
+                                <h4>PS-004</h4>
+                                <p>Tersedia</p>
+                            </div>
+                            <div class="ps-unit overtime" onclick="showPSDetails('PS-005', 'Waktu Habis')">
+                                <div class="ps-status overtime"></div>
+                                <h4>PS-005</h4>
+                                <p>Waktu Habis</p>
+                            </div>
+                            <div class="ps-unit borrowed" onclick="showPSDetails('PS-006', 'Disewa Keluar')">
+                                <div class="ps-status borrowed"></div>
+                                <h4>PS-006</h4>
+                                <p>Disewa Keluar</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="quick-actions">
+                        <div class="action-card" onclick="showScreen('rental-screen')">
+                            <div class="icon">🎮</div>
+                            <h4>Kelola Sewa</h4>
+                        </div>
+                        <div class="action-card" onclick="showScreen('pos-screen')">
+                            <div class="icon">🍿</div>
+                            <h4>POS F&B</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rental Management Screen -->
+            <div class="screen" id="rental-screen">
+                <div class="rental-list">
+                    <h3 style="margin-bottom: 20px; color: #333;">Sewa Aktif</h3>
+                    
+                    <div class="rental-item">
+                        <div class="rental-info">
+                            <h4>PS-002 • FIFA 24</h4>
+                            <p>Sisa: 45 menit • Rp 15,000</p>
+                        </div>
+                        <div class="rental-actions">
+                            <button class="btn btn-primary">Perpanjang</button>
+                            <button class="btn btn-success">Selesai</button>
+                        </div>
+                    </div>
+
+                    <div class="rental-item">
+                        <div class="rental-info">
+                            <h4>PS-003 • Call of Duty</h4>
+                            <p>Sisa: 5 menit • Rp 20,000</p>
+                        </div>
+                        <div class="rental-actions">
+                            <button class="btn btn-warning">Perpanjang</button>
+                            <button class="btn btn-success">Selesai</button>
+                        </div>
+                    </div>
+
+                    <div class="rental-item">
+                        <div class="rental-info">
+                            <h4>PS-005 • Tekken 8</h4>
+                            <p>Waktu Habis! • Rp 25,000</p>
+                        </div>
+                        <div class="rental-actions">
+                            <button class="btn btn-primary">Perpanjang</button>
+                            <button class="btn btn-success">Selesai</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- POS Screen -->
+            <div class="screen" id="pos-screen">
+                <div class="pos-content">
+                    <h3 style="margin-bottom: 20px; color: #333;">Menu Makanan & Minuman</h3>
+                    
+                    <div class="menu-grid">
+                        <div class="menu-item" onclick="addToCart('Nasi Goreng', 25000)">
+                            <div class="img" style="width: 60px; height: 60px; background: #ffd700; border-radius: 8px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🍛</div>
+                            <h4>Nasi Goreng</h4>
+                            <p>Rp 25,000</p>
+                        </div>
+                        <div class="menu-item" onclick="addToCart('Mie Ayam', 20000)">
+                            <div class="img" style="width: 60px; height: 60px; background: #ff6b6b; border-radius: 8px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🍜</div>
+                            <h4>Mie Ayam</h4>
+                            <p>Rp 20,000</p>
+                        </div>
+                        <div class="menu-item" onclick="addToCart('Es Teh', 8000)">
+                            <div class="img" style="width: 60px; height: 60px; background: #4ecdc4; border-radius: 8px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🧊</div>
+                            <h4>Es Teh</h4>
+                            <p>Rp 8,000</p>
+                        </div>
+                        <div class="menu-item" onclick="addToCart('Kopi', 12000)">
+                            <div class="img" style="width: 60px; height: 60px; background: #8b4513; border-radius: 8px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 24px;">☕</div>
+                            <h4>Kopi</h4>
+                            <p>Rp 12,000</p>
+                        </div>
+                    </div>
+
+                    <div class="cart-summary">
+                        <h3>Keranjang</h3>
+                        <div id="cart-items"></div>
+                        <div class="cart-total">Total: Rp <span id="cart-total">0</span></div>
+                        <button class="checkout-btn" onclick="checkout()">Checkout</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showScreen('home-screen')">
+                    <div class="icon">🏠</div>
+                    <span>Home</span>
+                </button>
+                <button class="nav-tab" onclick="showScreen('rental-screen')">
+                    <div class="icon">🎮</div>
+                    <span>Sewa</span>
+                </button>
+                <button class="nav-tab" onclick="showScreen('pos-screen')">
+                    <div class="icon">🍿</div>
+                    <span>POS</span>
+                </button>
+                <button class="nav-tab" onclick="showMoreMenu()">
+                    <div class="icon">⚙️</div>
+                    <span>Lainnya</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h3 id="modal-title">PlayStation Details</h3>
+            <div id="modal-body"></div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="closeModal()">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cart = [];
+        let cartTotal = 0;
+
+        function showScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Show selected screen
+            document.getElementById(screenId).classList.add('active');
+            
+            // Update nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Activate corresponding nav tab
+            if (screenId === 'home-screen') {
+                document.querySelector('.nav-tab:nth-child(1)').classList.add('active');
+            } else if (screenId === 'rental-screen') {
+                document.querySelector('.nav-tab:nth-child(2)').classList.add('active');
+            } else if (screenId === 'pos-screen') {
+                document.querySelector('.nav-tab:nth-child(3)').classList.add('active');
+            }
+        }
+
+        function showPSDetails(psId, status) {
+            const modal = document.getElementById('modal');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            
+            title.textContent = psId;
+            
+            if (status === 'Tersedia') {
+                body.innerHTML = `
+                    <p style="margin-bottom: 15px;">Status: <strong style="color: #28a745;">Tersedia</strong></p>
+                    <button class="btn btn-primary" style="width: 100%; margin-bottom: 10px;" onclick="startRental('${psId}')">Mulai Sewa</button>
+                `;
+            } else if (status === 'Dimainkan') {
+                body.innerHTML = `
+                    <p style="margin-bottom: 15px;">Status: <strong style="color: #007bff;">Sedang Dimainkan</strong></p>
+                    <p style="margin-bottom: 15px;">Sisa waktu: <strong>45 menit</strong></p>
+                    <button class="btn btn-warning" style="width: 100%; margin-bottom: 10px;" onclick="extendRental('${psId}')">Perpanjang</button>
+                    <button class="btn btn-success" style="width: 100%;" onclick="endRental('${psId}')">Selesaikan</button>
+                `;
+            } else if (status === 'Hampir Habis') {
+                body.innerHTML = `
+                    <p style="margin-bottom: 15px;">Status: <strong style="color: #ffc107;">Hampir Habis</strong></p>
+                    <p style="margin-bottom: 15px;">Sisa waktu: <strong style="color: #dc3545;">5 menit</strong></p>
+                    <button class="btn btn-warning" style="width: 100%; margin-bottom: 10px;" onclick="extendRental('${psId}')">Perpanjang</button>
+                    <button class="btn btn-success" style="width: 100%;" onclick="endRental('${psId}')">Selesaikan</button>
+                `;
+            } else if (status === 'Waktu Habis') {
+                body.innerHTML = `
+                    <p style="margin-bottom: 15px;">Status: <strong style="color: #dc3545;">Waktu Habis</strong></p>
+                    <p style="margin-bottom: 15px;">Silakan selesaikan atau perpanjang sewa</p>
+                    <button class="btn btn-warning" style="width: 100%; margin-bottom: 10px;" onclick="extendRental('${psId}')">Perpanjang</button>
+                    <button class="btn btn-success" style="width: 100%;" onclick="endRental('${psId}')">Selesaikan</button>
+                `;
+            } else if (status === 'Disewa Keluar') {
+                body.innerHTML = `
+                    <p style="margin-bottom: 15px;">Status: <strong style="color: #6c757d;">Disewa Keluar</strong></p>
+                    <p style="margin-bottom: 15px;">PlayStation sedang dipinjam keluar</p>
+                `;
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        function startRental(psId) {
+            alert(`Memulai sewa ${psId}...`);
+            closeModal();
+        }
+
+        function extendRental(psId) {
+            alert(`Perpanjang sewa ${psId}...`);
+            closeModal();
+        }
+
+        function endRental(psId) {
+            alert(`Selesaikan sewa ${psId}...`);
+            closeModal();
+        }
+
+        function showGameSearch() {
+            alert('Fitur pencarian game akan dibuka...');
+        }
+
+        function showMoreMenu() {
+            alert('Menu lainnya: Absensi, Laporan, Bahan Baku, dll.');
+        }
+
+        function addToCart(itemName, price) {
+            cart.push({name: itemName, price: price});
+            cartTotal += price;
+            updateCartDisplay();
+        }
+
+        function updateCartDisplay() {
+            const cartItems = document.getElementById('cart-items');
+            const cartTotalElement = document.getElementById('cart-total');
+            
+            cartItems.innerHTML = '';
+            cart.forEach((item, index) => {
+                cartItems.innerHTML += `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span>${item.name}</span>
+                        <span>Rp ${item.price.toLocaleString()}</span>
+                    </div>
+                `;
+            });
+            
+            cartTotalElement.textContent = cartTotal.toLocaleString();
+        }
+
+        function checkout() {
+            if (cart.length === 0) {
+                alert('Keranjang kosong!');
+                return;
+            }
+            
+            alert(`Checkout berhasil!\nTotal: Rp ${cartTotal.toLocaleString()}`);
+            cart = [];
+            cartTotal = 0;
+            updateCartDisplay();
+        }
+
+        // Auto-refresh PS status every 10 seconds (simulation)
+        setInterval(() => {
+            // Simulate real-time updates
+            console.log('Updating PS status...');
+        }, 10000);
+    </script>
+</body>
+</html

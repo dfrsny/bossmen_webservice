@@ -1,0 +1,60 @@
+const db = require("../config/db");
+
+// --- Jenis PS ---
+exports.getAllJenisPS = async () => {
+  const [rows] = await db.execute(`SELECT * FROM Jenis_PS ORDER BY nama_jenis`);
+  return rows;
+};
+
+exports.createJenisPS = async ({ nama_jenis, harga_per_jam }) => {
+  const [result] = await db.execute(
+    `INSERT INTO Jenis_PS (nama_jenis, harga_per_jam) VALUES (?, ?)`,
+    [nama_jenis, harga_per_jam]
+  );
+  return result;
+};
+
+// --- Game ---
+exports.getAllGames = async () => {
+  const [rows] = await db.execute(`SELECT * FROM Game ORDER BY nama_game`);
+  return rows;
+};
+
+exports.createGame = async ({ nama_game, deskripsi }) => {
+  const [result] = await db.execute(
+    `INSERT INTO Game (nama_game, deskripsi) VALUES (?, ?)`,
+    [nama_game, deskripsi]
+  );
+  return result;
+};
+
+// --- Unit PS ---
+exports.getAllPS = async () => {
+  const [rows] = await db.execute(`
+    SELECT ps.*, j.nama_jenis, j.harga_per_jam, c.nama_cabang
+    FROM PS ps
+    JOIN Jenis_PS j ON ps.id_jenis_ps = j.id_jenis_ps
+    JOIN Cabang c ON ps.id_cabang = c.id_cabang
+    ORDER BY ps.created_at DESC
+  `);
+  return rows;
+};
+
+exports.createPS = async ({ nomor_ps, id_jenis_ps, id_cabang }) => {
+  const [result] = await db.execute(
+    `INSERT INTO PS (nomor_ps, id_jenis_ps, id_cabang) VALUES (?, ?, ?)`,
+    [nomor_ps, id_jenis_ps, id_cabang]
+  );
+  return result;
+};
+
+exports.updateStatusPS = async (id_ps, status_fisik) => {
+  await db.execute(`UPDATE PS SET status_fisik = ? WHERE id_ps = ?`, [
+    status_fisik,
+    id_ps,
+  ]);
+};
+
+exports.deletePS = async (id_ps) => {
+  await db.execute(`DELETE FROM PS WHERE id_ps = ?`, [id_ps]);
+};
