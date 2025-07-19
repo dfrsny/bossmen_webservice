@@ -3,11 +3,11 @@ require("dotenv").config();
 
 const connection = mysql.createPool({
   // ✅ pakai createPool lebih baik
-  host: process.env.DB_HOST || "localhost",
+  host: process.env.DB_HOST || "trolley.proxy.rlwy.net",
   user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "bossman_ps_db2",
-  port: process.env.DB_PORT || 3306,
+  password: process.env.DB_PASSWORD || "yTbZWyTVMjPHusNoPngBXPLLohkNdXmY",
+  database: process.env.DB_NAME || "railway",
+  port: process.env.DB_PORT || 41816,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
