@@ -13,9 +13,9 @@ const createSewaDitempat = async (req, res) => {
     // Ambil harga_per_jam dari jenis_ps
     const [[hargaResult]] = await db.execute(
       `SELECT jp.harga_per_jam 
-       FROM PS p 
-       JOIN Jenis_PS jp ON p.id_jenis_ps = jp.id_jenis_ps 
-       WHERE p.id_ps = ?`,
+         FROM ps p 
+         JOIN jenis_ps jp ON p.id_jenis_ps = jp.id_jenis_ps 
+         WHERE p.id_ps = ?`, // Perubahan di sini: PS -> ps, Jenis_PS -> jenis_ps
       [id_ps]
     );
 
@@ -31,7 +31,7 @@ const createSewaDitempat = async (req, res) => {
 
     // Cek status PS
     const [[psStatus]] = await db.execute(
-      "SELECT status_fisik FROM PS WHERE id_ps = ?",
+      "SELECT status_fisik FROM ps WHERE id_ps = ?", // Perubahan di sini: PS -> ps
       [id_ps]
     );
 
@@ -61,7 +61,7 @@ const createSewaDitempat = async (req, res) => {
 
     // Update status PS
     await db.execute(
-      "UPDATE PS SET status_fisik = 'in_use', updated_at = CURRENT_TIMESTAMP WHERE id_ps = ?",
+      "UPDATE ps SET status_fisik = 'in_use', updated_at = CURRENT_TIMESTAMP WHERE id_ps = ?", // Perubahan di sini: PS -> ps
       [id_ps]
     );
 
@@ -90,7 +90,7 @@ const completeSewaDitempat = async (req, res) => {
     const { id_sewa_ditempat } = req.params;
 
     const [[sewa]] = await db.execute(
-      "SELECT id_ps FROM Sewa_Ditempat WHERE id_sewa_ditempat = ?",
+      "SELECT id_ps FROM sewa_ditempat WHERE id_sewa_ditempat = ?", // Perubahan di sini: Sewa_Ditempat -> sewa_ditempat
       [id_sewa_ditempat]
     );
 
@@ -109,7 +109,7 @@ const completeSewaDitempat = async (req, res) => {
     }
 
     await db.execute(
-      "UPDATE PS SET status_fisik = 'available', updated_at = CURRENT_TIMESTAMP WHERE id_ps = ?",
+      "UPDATE ps SET status_fisik = 'available', updated_at = CURRENT_TIMESTAMP WHERE id_ps = ?", // Perubahan di sini: PS -> ps
       [sewa.id_ps]
     );
 
@@ -151,10 +151,10 @@ const getSewaDitempatList = async (req, res) => {
 
     let query = `
       SELECT s.*, p.nomor_ps 
-      FROM Sewa_Ditempat s
-      JOIN PS p ON s.id_ps = p.id_ps
+      FROM sewa_ditempat s
+      JOIN ps p ON s.id_ps = p.id_ps
       WHERE 1=1
-    `;
+    `; // Perubahan di sini: Sewa_Ditempat -> sewa_ditempat, PS -> ps
     const params = [];
 
     if (tanggal) {

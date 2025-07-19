@@ -13,9 +13,14 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // sesuaikan jika butuh keamanan
+    origin: "*", // Ganti sesuai domain frontend jika perlu
+    methods: ["GET", "POST", "PUT", "DELETE"],
   },
 });
+
+// ✅ Inject ke sewaNotifier
+const { registerSocketIO } = require("./websocket/sewaNotifier");
+registerSocketIO(io);
 
 // Middleware untuk memasukkan io ke req (untuk dipakai di controller)
 app.use((req, res, next) => {
@@ -29,7 +34,7 @@ io.on("connection", (socket) => {
 
   // Join ke room berdasarkan id_cabang
   socket.on("join_branch", (id_cabang) => {
-    socket.join(`branch_${id_cabang}`);
+    socket.join(`cabang_${id_cabang}`);
     console.log(`➡️ Socket ${socket.id} joined branch_${id_cabang}`);
   });
 
@@ -64,10 +69,14 @@ const penggunaanBahanRoutes = require("./routes/penggunaanBahanRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes"); // 🚀 Tambahkan ini
 const userRoutes = require("./routes/userRoutes");
+const sewaHarianRoute = require("./routes/sewaHarianRoutes");
+const absensiRoutes = require("./routes/absensi");
 
+app.use("/api/absensi", absensiRoutes);
+app.use("/api/sewa/harian", sewaHarianRoute);
 app.use("/api/users", userRoutes);
 app.use("/api/dashboard", dashboardRoutes); // ✅ Register dashboard route
-app.use("/api/reports", reportRoutes);
+app.use("/api/report", reportRoutes);
 app.use("/api/bahan-baku", bahanBakuRoutes);
 app.use("/api/penggunaan-bahan", penggunaanBahanRoutes);
 app.use("/api/transaksi-makanan", transaksiMakananRoutes);

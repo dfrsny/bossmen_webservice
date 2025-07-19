@@ -3,7 +3,7 @@ const db = require("../config/db");
 exports.getAll = async (req, res) => {
   try {
     const [rows] = await db.execute(
-      "SELECT * FROM Bahan_Baku ORDER BY created_at DESC"
+      "SELECT * FROM bahan_baku ORDER BY created_at DESC"
     );
     res.json(rows);
   } catch (err) {
@@ -11,11 +11,27 @@ exports.getAll = async (req, res) => {
   }
 };
 
+exports.getByCabang = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [rows] = await db.execute(
+      "SELECT * FROM bahan_baku WHERE id_cabang = ? ORDER BY created_at DESC",
+      [id]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Gagal mengambil bahan baku per cabang" });
+  }
+};
+
 exports.create = async (req, res) => {
   const { nama_bahan_baku, jumlah_stok, unit_satuan, id_cabang } = req.body;
   try {
     const [result] = await db.execute(
-      `INSERT INTO Bahan_Baku (nama_bahan_baku, jumlah_stok, unit_satuan, id_cabang)
+      `INSERT INTO bahan_baku (nama_bahan_baku, jumlah_stok, unit_satuan, id_cabang)
        VALUES (?, ?, ?, ?)`,
       [nama_bahan_baku, jumlah_stok, unit_satuan, id_cabang]
     );
@@ -32,7 +48,7 @@ exports.update = async (req, res) => {
   const { nama_bahan_baku, jumlah_stok, unit_satuan, id_cabang } = req.body;
   try {
     await db.execute(
-      `UPDATE Bahan_Baku SET nama_bahan_baku = ?, jumlah_stok = ?, unit_satuan = ?, id_cabang = ? WHERE id_bahan_baku = ?`,
+      `UPDATE bahan_baku SET nama_bahan_baku = ?, jumlah_stok = ?, unit_satuan = ?, id_cabang = ? WHERE id_bahan_baku = ?`,
       [nama_bahan_baku, jumlah_stok, unit_satuan, id_cabang, id]
     );
     res.json({ message: "Bahan baku diupdate" });
@@ -44,9 +60,10 @@ exports.update = async (req, res) => {
 exports.remove = async (req, res) => {
   const { id } = req.params;
   try {
-    await db.execute(`DELETE FROM Bahan_Baku WHERE id_bahan_baku = ?`, [id]);
+    await db.execute(`DELETE FROM bahan_baku WHERE id_bahan_baku = ?`, [id]);
     res.json({ message: "Bahan baku dihapus" });
   } catch (err) {
     res.status(500).json({ message: "Gagal hapus bahan baku" });
   }
 };
+S;

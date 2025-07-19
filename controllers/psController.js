@@ -8,9 +8,9 @@ const getHargaPerJam = async (req, res) => {
   try {
     const [[result]] = await db.execute(
       `SELECT jp.harga_per_jam 
-       FROM PS p 
-       JOIN Jenis_PS jp ON p.id_jenis_ps = jp.id_jenis_ps 
-       WHERE p.id_ps = ?`,
+         FROM ps p 
+         JOIN jenis_ps jp ON p.id_jenis_ps = jp.id_jenis_ps 
+         WHERE p.id_ps = ?`, // Perubahan di sini: PS -> ps, Jenis_PS -> jenis_ps
       [id_ps]
     );
 
@@ -24,7 +24,6 @@ const getHargaPerJam = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 // --- ✅ UNTUK ADMIN WEB ---
 const getAllPS = async (req, res) => {
   try {
@@ -84,15 +83,15 @@ const updatePS = async (req, res) => {
 
   try {
     await conn.execute(
-      `UPDATE PS SET nomor_ps = ?, id_jenis_ps = ?, id_cabang = ?, status_fisik = ? WHERE id_ps = ?`,
+      `UPDATE ps SET nomor_ps = ?, id_jenis_ps = ?, id_cabang = ?, status_fisik = ? WHERE id_ps = ?`, // Perubahan di sini: PS -> ps
       [nomor_ps, id_jenis_ps, id_cabang, status_fisik, id_ps]
     );
 
     if (Array.isArray(game_ids)) {
-      await conn.execute(`DELETE FROM PS_Game WHERE id_ps = ?`, [id_ps]);
+      await conn.execute(`DELETE FROM ps_game WHERE id_ps = ?`, [id_ps]); // Perubahan di sini: PS_Game -> ps_game
       for (const id_game of game_ids) {
         await conn.execute(
-          `INSERT INTO PS_Game (id_ps, id_game) VALUES (?, ?)`,
+          `INSERT INTO ps_game (id_ps, id_game) VALUES (?, ?)`, // Perubahan di sini: PS_Game -> ps_game
           [id_ps, id_game]
         );
       }
@@ -114,10 +113,15 @@ const updateStatusPS = async (req, res) => {
     const { id_ps } = req.params;
     const { status_fisik } = req.body;
 
+    const allowedStatuses = ["available", "maintenance"];
+    if (!allowedStatuses.includes(status_fisik)) {
+      return res.status(400).json({ message: "Status fisik tidak valid." });
+    }
+
     await psModel.updateStatusPS(id_ps, status_fisik);
     res.json({ message: "Status PS berhasil diupdate" });
   } catch (err) {
-    console.error(err);
+    console.error("❌ Gagal update status PS:", err.message);
     res.status(500).json({ message: "Gagal update status PS" });
   }
 };
@@ -139,9 +143,9 @@ const getGamesByPS = async (req, res) => {
   try {
     const [games] = await db.execute(
       `SELECT g.id_game, g.nama_game 
-       FROM PS_Game pg 
-       JOIN Game g ON pg.id_game = g.id_game 
-       WHERE pg.id_ps = ?`,
+         FROM ps_game pg 
+         JOIN game g ON pg.id_game = g.id_game 
+         WHERE pg.id_ps = ?`, // Perubahan di sini: PS_Game -> ps_game, Game -> game
       [id_ps]
     );
 
@@ -160,9 +164,10 @@ const updateGamesOfPS = async (req, res) => {
   await conn.beginTransaction();
 
   try {
-    await conn.execute(`DELETE FROM PS_Game WHERE id_ps = ?`, [id_ps]);
+    await conn.execute(`DELETE FROM ps_game WHERE id_ps = ?`, [id_ps]); // Perubahan di sini: PS_Game -> ps_game
     for (const id_game of game_ids) {
-      await conn.execute(`INSERT INTO PS_Game (id_ps, id_game) VALUES (?, ?)`, [
+      await conn.execute(`INSERT INTO ps_game (id_ps, id_game) VALUES (?, ?)`, [
+        // Perubahan di sini: PS_Game -> ps_game
         id_ps,
         id_game,
       ]);
@@ -181,7 +186,7 @@ const updateGamesOfPS = async (req, res) => {
 
 const getAllJenisPS = async (req, res) => {
   try {
-    const [rows] = await db.execute("SELECT * FROM Jenis_PS");
+    const [rows] = await db.execute("SELECT * FROM jenis_ps"); // Perubahan di sini: Jenis_PS -> jenis_ps
     res.json(rows);
   } catch (err) {
     console.error("Gagal mengambil Jenis PS:", err);
@@ -191,7 +196,7 @@ const getAllJenisPS = async (req, res) => {
 
 const getAllGames = async (req, res) => {
   try {
-    const [games] = await db.execute("SELECT id_game, nama_game FROM Game");
+    const [games] = await db.execute("SELECT id_game, nama_game FROM game"); // Perubahan di sini: Game -> game
     res.json(games);
   } catch (err) {
     console.error("Gagal mengambil semua game:", err);

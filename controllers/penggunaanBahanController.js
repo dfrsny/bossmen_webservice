@@ -1,6 +1,8 @@
 const db = require("../config/db");
+const PDFDocument = require("pdfkit");
+const ExcelJS = require("exceljs");
 
-exports.createPenggunaan = async (req, res) => {
+const createPenggunaan = async (req, res) => {
   const {
     id_karyawan,
     id_bahan_baku,
@@ -18,9 +20,9 @@ exports.createPenggunaan = async (req, res) => {
 
   try {
     await conn.execute(
-      `INSERT INTO Penggunaan_Bahan_Baku 
+      `INSERT INTO penggunaan_bahan_baku 
        (id_karyawan, id_bahan_baku, jumlah_digunakan, keterangan, id_cabang)
-       VALUES (?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?)`, // Perubahan di sini: Penggunaan_Bahan_Baku -> penggunaan_bahan_baku
       [
         id_karyawan,
         id_bahan_baku,
@@ -31,9 +33,9 @@ exports.createPenggunaan = async (req, res) => {
     );
 
     await conn.execute(
-      `UPDATE Bahan_Baku 
+      `UPDATE bahan_baku 
        SET jumlah_stok = jumlah_stok - ? 
-       WHERE id_bahan_baku = ?`,
+       WHERE id_bahan_baku = ?`, // Perubahan di sini: Bahan_Baku -> bahan_baku
       [jumlah_digunakan, id_bahan_baku]
     );
 
@@ -48,16 +50,16 @@ exports.createPenggunaan = async (req, res) => {
   }
 };
 
-exports.getPenggunaanFiltered = async (req, res) => {
+const getPenggunaanFiltered = async (req, res) => {
   const { id_cabang, tanggal } = req.query;
 
   let query = `
     SELECT pb.*, b.nama_bahan_baku, b.unit_satuan, k.nama_karyawan
-    FROM Penggunaan_Bahan_Baku pb
-    JOIN Bahan_Baku b ON pb.id_bahan_baku = b.id_bahan_baku
-    JOIN Karyawan k ON pb.id_karyawan = k.id_karyawan
+    FROM penggunaan_bahan_baku pb
+    JOIN bahan_baku b ON pb.id_bahan_baku = b.id_bahan_baku
+    JOIN karyawan k ON pb.id_karyawan = k.id_karyawan
     WHERE 1=1
-  `;
+  `; // Perubahan di sini: Penggunaan_Bahan_Baku -> penggunaan_bahan_baku, Bahan_Baku -> bahan_baku, Karyawan -> karyawan
   const params = [];
 
   if (id_cabang) {
@@ -81,18 +83,16 @@ exports.getPenggunaanFiltered = async (req, res) => {
   }
 };
 
-const PDFDocument = require("pdfkit");
-
-exports.exportPDF = async (req, res) => {
+const exportPDF = async (req, res) => {
   const { id_cabang, tanggal } = req.query;
 
   let query = `
     SELECT pb.*, b.nama_bahan_baku, b.unit_satuan, k.nama_karyawan
-    FROM Penggunaan_Bahan_Baku pb
-    JOIN Bahan_Baku b ON pb.id_bahan_baku = b.id_bahan_baku
-    JOIN Karyawan k ON pb.id_karyawan = k.id_karyawan
+    FROM penggunaan_bahan_baku pb
+    JOIN bahan_baku b ON pb.id_bahan_baku = b.id_bahan_baku
+    JOIN karyawan k ON pb.id_karyawan = k.id_karyawan
     WHERE 1=1
-  `;
+  `; // Perubahan di sini: Penggunaan_Bahan_Baku -> penggunaan_bahan_baku, Bahan_Baku -> bahan_baku, Karyawan -> karyawan
   const params = [];
 
   if (id_cabang) {
@@ -139,18 +139,17 @@ exports.exportPDF = async (req, res) => {
     res.status(500).json({ message: "Gagal export PDF" });
   }
 };
-const ExcelJS = require("exceljs");
 
-exports.exportExcel = async (req, res) => {
+const exportExcel = async (req, res) => {
   const { id_cabang, tanggal } = req.query;
 
   let query = `
     SELECT pb.*, b.nama_bahan_baku, b.unit_satuan, k.nama_karyawan
-    FROM Penggunaan_Bahan_Baku pb
-    JOIN Bahan_Baku b ON pb.id_bahan_baku = b.id_bahan_baku
-    JOIN Karyawan k ON pb.id_karyawan = k.id_karyawan
+    FROM penggunaan_bahan_baku pb
+    JOIN bahan_baku b ON pb.id_bahan_baku = b.id_bahan_baku
+    JOIN karyawan k ON pb.id_karyawan = k.id_karyawan
     WHERE 1=1
-  `;
+  `; // Perubahan di sini: Penggunaan_Bahan_Baku -> penggunaan_bahan_baku, Bahan_Baku -> bahan_baku, Karyawan -> karyawan
   const params = [];
 
   if (id_cabang) {
@@ -207,4 +206,60 @@ exports.exportExcel = async (req, res) => {
     console.error("Export Excel error:", err);
     res.status(500).json({ message: "Gagal export Excel" });
   }
+};
+
+const getByTanggal = async (req, res) => {
+  let { tanggal, id_cabang } = req.query;
+
+  if (!tanggal) {
+    const now = new Date();
+    tanggal = now.toISOString().split("T")[0]; // default ke hari ini
+  }
+
+  let query = `
+    SELECT 
+      pb.id_penggunaan_bahan,
+      pb.created_at,
+      pb.jumlah_digunakan,
+      pb.keterangan,
+      k.nama_karyawan,
+      b.nama_bahan_baku,
+      b.unit_satuan
+    FROM penggunaan_bahan_baku pb
+    JOIN karyawan k ON pb.id_karyawan = k.id_karyawan
+    JOIN bahan_baku b ON pb.id_bahan_baku = b.id_bahan_baku
+    WHERE DATE(pb.created_at) = ?
+  `; // Perubahan di sini: Penggunaan_Bahan_Baku -> penggunaan_bahan_baku, Karyawan -> karyawan, Bahan_Baku -> bahan_baku
+  const params = [tanggal];
+
+  if (id_cabang) {
+    query += ` AND pb.id_cabang = ?`;
+    params.push(id_cabang);
+  }
+
+  query += ` ORDER BY pb.created_at DESC`;
+
+  try {
+    const [rows] = await db.execute(query, params);
+    res.json(rows);
+  } catch (err) {
+    console.error("❌ Gagal ambil penggunaan bahan:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+module.exports = {
+  createPenggunaan,
+  getPenggunaanFiltered,
+  exportPDF,
+  exportExcel,
+  getByTanggal,
+};
+
+module.exports = {
+  createPenggunaan,
+  getPenggunaanFiltered,
+  exportPDF,
+  exportExcel,
+  getByTanggal,
 };

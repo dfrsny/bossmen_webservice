@@ -4,11 +4,13 @@ exports.createReport = async (req, res) => {
   try {
     const { id_karyawan, deskripsi_report, id_cabang } = req.body;
 
-    const fotoUrls = req.files.map((file) => `/uploads/${file.filename}`);
+    const fotoUrls = req.files.map(
+      (file) => `/uploads/report/${file.filename}`
+    );
 
     await db.query(
-      `INSERT INTO Report (id_karyawan, deskripsi_report, foto_report_urls, id_cabang)
-       VALUES (?, ?, ?, ?)`,
+      `INSERT INTO report (id_karyawan, deskripsi_report, foto_report_urls, id_cabang)
+       VALUES (?, ?, ?, ?)`, // Changed 'Report' to 'report'
       [id_karyawan, deskripsi_report, JSON.stringify(fotoUrls), id_cabang]
     );
 
@@ -23,9 +25,9 @@ exports.getAllReports = async (req, res) => {
   try {
     const [rows] = await db.query(`
       SELECT r.*, k.nama_karyawan, c.nama_cabang
-      FROM Report r
-      JOIN Karyawan k ON r.id_karyawan = k.id_karyawan
-      JOIN Cabang c ON r.id_cabang = c.id_cabang
+      FROM report r                       -- Changed 'Report' to 'report'
+      JOIN karyawan k ON r.id_karyawan = k.id_karyawan -- Changed 'Karyawan' to 'karyawan'
+      JOIN cabang c ON r.id_cabang = c.id_cabang     -- Changed 'Cabang' to 'cabang'
       ORDER BY r.created_at DESC
     `);
 
@@ -43,7 +45,8 @@ exports.getAllReports = async (req, res) => {
 
 exports.getReportById = async (req, res) => {
   try {
-    const [rows] = await db.query(`SELECT * FROM Report WHERE id_report = ?`, [
+    const [rows] = await db.query(`SELECT * FROM report WHERE id_report = ?`, [
+      // Changed 'Report' to 'report'
       req.params.id,
     ]);
 
@@ -67,7 +70,8 @@ exports.updateStatus = async (req, res) => {
       return res.status(400).json({ error: "Status tidak valid" });
     }
 
-    await db.query(`UPDATE Report SET status_report = ? WHERE id_report = ?`, [
+    await db.query(`UPDATE report SET status_report = ? WHERE id_report = ?`, [
+      // Changed 'Report' to 'report'
       status_report,
       req.params.id,
     ]);

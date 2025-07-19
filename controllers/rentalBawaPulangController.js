@@ -1,5 +1,6 @@
 const rentalModel = require("../models/rentalBawaPulangModel");
 const db = require("../config/db");
+const { getIO } = require("../websocket/sewaNotifier");
 
 const createRental = async (req, res) => {
   console.log("📥 req.body:", req.body);
@@ -28,7 +29,7 @@ const createRental = async (req, res) => {
 
     // Cek status PS
     const [[psStatus]] = await db.execute(
-      "SELECT status_fisik FROM PS WHERE id_ps = ?",
+      "SELECT status_fisik FROM ps WHERE id_ps = ?", // Perubahan di sini: PS -> ps
       [data.id_ps]
     );
 
@@ -60,7 +61,7 @@ const createRental = async (req, res) => {
 
     // Update status PS
     await db.execute(
-      "UPDATE PS SET status_fisik = 'borrowed_out', updated_at = CURRENT_TIMESTAMP WHERE id_ps = ?",
+      "UPDATE ps SET status_fisik = 'borrowed_out', updated_at = CURRENT_TIMESTAMP WHERE id_ps = ?", // Perubahan di sini: PS -> ps
       [data.id_ps]
     );
 
@@ -81,21 +82,25 @@ const createRental = async (req, res) => {
   }
 };
 
-// PUT /api/rental-dibawa-pulang/:id/batal
 const tolakSewa = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Update status sewa
     await rentalModel.updateStatus(id, "ditolak");
 
-    // Ambil id_ps dari sewa
     const rental = await rentalModel.getRentalById(id);
     if (rental) {
       await db.execute(
-        "UPDATE PS SET status_fisik = 'available', updated_at = CURRENT_TIMESTAMP WHERE id_ps = ?",
+        "UPDATE ps SET status_fisik = 'available', updated_at = CURRENT_TIMESTAMP WHERE id_ps = ?", // Perubahan di sini: PS -> ps
         [rental.id_ps]
       );
+
+      // ✅ Gunakan getIo()
+      const io = getIO();
+      io.to(`cabang_${rental.id_cabang}`).emit("sewa_status_update", {
+        sewaId: id,
+        status: "ditolak",
+      });
     }
 
     res.status(200).json({ message: "Sewa berhasil dibatalkan." });
@@ -106,6 +111,39 @@ const tolakSewa = async (req, res) => {
     });
   }
 };
+
+const setujuiSewa = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await rentalModel.updateStatus(id, "disetujui");
+
+    const rental = await rentalModel.getRentalById(id);
+    if (rental) {
+      await db.execute(
+        "UPDATE ps SET status_fisik = 'borrowed_out', updated_at = CURRENT_TIMESTAMP WHERE id_ps = ?", // Perubahan di sini: PS -> ps
+        [rental.id_ps]
+      );
+
+      // ✅ Gunakan getIo()
+      const io = getIO();
+      io.to(`cabang_${rental.id_cabang}`).emit("sewa_status_update", {
+        sewaId: id,
+        status: "disetujui",
+      });
+    }
+
+    res.status(200).json({ message: "Sewa berhasil disetujui." });
+  } catch (error) {
+    console.error("❌ Gagal menyetujui sewa:", error);
+    res.status(500).json({
+      message: "Gagal menyetujui sewa.",
+      error: error.message,
+    });
+  }
+};
+
+module.exports = { tolakSewa, setujuiSewa };
 
 // PUT /api/rental-dibawa-pulang/:id/kembali
 const kembalikanSewa = async (req, res) => {
@@ -119,7 +157,7 @@ const kembalikanSewa = async (req, res) => {
     const rental = await rentalModel.getRentalById(id);
     if (rental) {
       await db.execute(
-        "UPDATE PS SET status_fisik = 'available', updated_at = CURRENT_TIMESTAMP WHERE id_ps = ?",
+        "UPDATE ps SET status_fisik = 'available', updated_at = CURRENT_TIMESTAMP WHERE id_ps = ?", // Perubahan di sini: PS -> ps
         [rental.id_ps]
       );
     }
@@ -130,33 +168,6 @@ const kembalikanSewa = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "Gagal memproses pengembalian.",
-      error: error.message,
-    });
-  }
-};
-
-// PUT /api/rental-dibawa-pulang/:id/setujui
-const setujuiSewa = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    // Update status sewa ke 'disetujui'
-    await rentalModel.updateStatus(id, "disetujui");
-
-    // Ambil detail rental untuk update status PS
-    const rental = await rentalModel.getRentalById(id);
-    if (rental) {
-      await db.execute(
-        "UPDATE PS SET status_fisik = 'borrowed_out', updated_at = CURRENT_TIMESTAMP WHERE id_ps = ?",
-        [rental.id_ps]
-      );
-    }
-
-    res.status(200).json({ message: "Sewa berhasil disetujui." });
-  } catch (error) {
-    console.error("❌ Gagal menyetujui sewa:", error);
-    res.status(500).json({
-      message: "Gagal menyetujui sewa.",
       error: error.message,
     });
   }
@@ -217,7 +228,7 @@ const getSewaList = async (req, res) => {
   try {
     const { status, tanggal, id_cabang } = req.query;
 
-    let query = `SELECT * FROM Sewa_Dibawa_Pulang WHERE 1=1`;
+    let query = `SELECT * FROM sewa_dibawa_pulang WHERE 1=1`; // Perubahan di sini: Sewa_Dibawa_Pulang -> sewa_dibawa_pulang
     const params = [];
 
     if (status) {

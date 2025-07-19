@@ -46,8 +46,26 @@ const getDetail = async (req, res) => {
   }
 };
 
+const getByTanggal = async (req, res) => {
+  let { tanggal, id_cabang } = req.query;
+
+  if (!tanggal) {
+    const now = new Date();
+    tanggal = now.toISOString().split("T")[0]; // default ke hari ini
+  }
+
+  try {
+    const data = await model.getByTanggal({ tanggal, id_cabang });
+    res.json(data);
+  } catch (err) {
+    console.error("Gagal ambil transaksi berdasarkan tanggal:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   create,
   getAll,
   getDetail,
+  getByTanggal,
 };

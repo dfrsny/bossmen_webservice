@@ -1,3 +1,4 @@
+// socket.js
 let ioInstance;
 
 function initSocket(server) {
@@ -10,16 +11,16 @@ function initSocket(server) {
   });
 
   io.on("connection", (socket) => {
-    console.log(`⚡ New client connected: ${socket.id}`);
+    console.log(`⚡ Socket connected: ${socket.id}`);
 
-    socket.on("join_branch", (id_cabang) => {
-      const roomName = `cabang_${id_cabang}`;
+    socket.on("join_branch", (idCabang) => {
+      const roomName = `cabang_${idCabang}`;
       socket.join(roomName);
-      console.log(`🔗 Socket ${socket.id} joined room ${roomName}`);
+      console.log(`👥 Joined room: ${roomName}`);
     });
 
     socket.on("disconnect", () => {
-      console.log(`❌ Client disconnected: ${socket.id}`);
+      console.log(`❌ Socket disconnected: ${socket.id}`);
     });
   });
 
@@ -28,7 +29,7 @@ function initSocket(server) {
 
 function getIO() {
   if (!ioInstance) {
-    throw new Error("Socket.io not initialized!");
+    throw new Error("Socket.IO belum diinisialisasi.");
   }
   return ioInstance;
 }

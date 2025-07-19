@@ -20,6 +20,7 @@ const mapConsoleStatus = (
         actions = [
           { label: "Sewa di Tempat", action: "sewa_ditempat" },
           { label: "Sewa Dibawa Pulang", action: "sewa_bawa_pulang" },
+          { label: "Tandai Maintenance", action: "ubah_status_maintenance" }, // ✅ Tambah ini
         ];
       }
       break;
@@ -32,13 +33,16 @@ const mapConsoleStatus = (
 
     case "borrowed_out":
       color = "silver";
-      text = "Sedang Dibawa Pulang";
+      text = "Sewa Dibawa Pulang";
       actions = [{ label: "Selesaikan Sewa", action: "selesaikan_sewa" }];
       break;
 
     case "maintenance":
       color = "black";
       text = "Maintenance";
+      actions = [
+        { label: "Selesaikan Maintenance", action: "ubah_status_available" }, // ✅ Tambah ini
+      ];
       break;
 
     case "rusak":
@@ -46,7 +50,6 @@ const mapConsoleStatus = (
       text = "Rusak";
       break;
   }
-
   return {
     id_ps: ps.id_ps,
     id_cabang: ps.id_cabang ?? null, // ⬅ Tambahkan agar frontend bisa akses

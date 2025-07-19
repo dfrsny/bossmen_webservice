@@ -1,10 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const dashboardController = require("../controllers/dashboardController");
+const { authenticateToken } = require("../middlewares/authMiddleware");
 
 // 📊 Ringkasan statistik dashboard (jumlah sewa, pendapatan, dll)
 router.get("/summary", dashboardController.getSummary);
-
+router.get("/export-pdf", authenticateToken, dashboardController.exportPDF);
 // 📈 Grafik pendapatan harian (default: 7 hari terakhir atau filter tanggal)
 router.get("/pendapatan-harian", dashboardController.getPendapatanHarian);
 

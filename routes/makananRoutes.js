@@ -23,5 +23,6 @@ router.get(
   verifyOwner,
   makananController.getDetailTransaksi
 );
+router.get("/menu", authenticateToken, makananController.getMenu);
 
 module.exports = router;

@@ -11,7 +11,19 @@ exports.getAllKaryawan = async (req, res) => {
     res.status(500).json({ message: "Gagal mengambil data karyawan" });
   }
 };
-
+exports.getKaryawanByCabang = async (req, res) => {
+  try {
+    const { idCabang } = req.params;
+    const [rows] = await db.execute(
+      "SELECT id_karyawan, nama_karyawan FROM karyawan WHERE id_cabang = ?",
+      [idCabang]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("🔥 Error getKaryawanByCabang:", err);
+    res.status(500).json({ message: "Gagal mengambil data karyawan" });
+  }
+};
 exports.createKaryawan = async (req, res) => {
   try {
     const { nama_karyawan, no_wa, alamat, id_cabang, foto_ktp } = req.body;
@@ -73,10 +85,10 @@ exports.getKaryawanTanpaAkun = async (req, res) => {
   try {
     const [rows] = await db.execute(`
       SELECT k.id_karyawan, k.nama_karyawan
-      FROM Karyawan k
-      LEFT JOIN User u ON k.id_karyawan = u.id_karyawan
+      FROM karyawan k
+      LEFT JOIN user u ON k.id_karyawan = u.id_karyawan
       WHERE u.id_karyawan IS NULL
-    `);
+    `); // Perubahan di sini: Karyawan -> karyawan, User -> user
     res.json(rows);
   } catch (error) {
     console.error("Gagal ambil karyawan tanpa akun:", error);

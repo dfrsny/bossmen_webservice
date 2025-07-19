@@ -54,13 +54,7 @@ const updateConsoleStatus = async (req, res) => {
     const { id_ps } = req.params;
     const { status_fisik } = req.body;
 
-    const allowedStatuses = [
-      "available",
-      "borrowed_out",
-      "maintenance",
-      "rusak",
-      "in_use",
-    ];
+    const allowedStatuses = ["available", "maintenance"];
 
     if (!allowedStatuses.includes(status_fisik)) {
       return res.status(400).json({ message: "Status fisik tidak valid" });
