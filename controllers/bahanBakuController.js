@@ -66,4 +66,5 @@ exports.remove = async (req, res) => {
     res.status(500).json({ message: "Gagal hapus bahan baku" });
   }
 };
-S;
+
+
